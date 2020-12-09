@@ -1,0 +1,219 @@
+create table person(
+  ID int primary key,
+  flight_No varchar(20),
+  f_name varchar(20),
+  m_name varchar(20),
+  l_name varchar(20),
+  travelled_from varchar(20),
+  travelling_to varchar(20),
+  age int,
+  arrival_date date
+  );
+
+
+drop table person;
+drop table PA,pin_state,has_contact_info,allotment;
+drop table arrival_departure;
+
+create table arrival_departure(
+  arrival_date date primary key,
+  departure_date date
+  );
+
+create table PA(
+  ID int primary key,
+  Locality varchar(50),
+  PIN varchar(10),
+  address_Line varchar(50),
+  foreign key(ID)
+  references person(ID)
+  on delete cascade
+  );
+
+
+create table pin_state(
+  PIN varchar(10) primary key,
+  State varchar(30)
+  );
+  
+  
+create table has_contact_info(
+  Ph_no varchar(10) primary key,
+  ID int,
+  foreign key(ID)
+  references person(ID)
+  on delete cascade
+  );
+  
+create table allotment(
+	h_no int,
+  	flr_no int,
+  	room_no int,
+  	isEmpty int,
+  	ID int,
+    foreign key(ID)
+    references person(ID)
+    on delete no action,
+  	primary key(h_no,room_no,flr_no),
+  	foreign key(h_no)
+    references hostels(h_no)
+    on delete no action
+  );
+
+drop table allotment;
+
+insert into allotment values (1,0,0,1,NULL);
+insert into allotment values (1,0,1,1,NULL);
+insert into allotment values (1,1,0,1,NULL);
+insert into allotment values (1,2,0,1,NULL);
+insert into allotment values (2,0,0,1,NULL);
+insert into allotment values (2,0,1,1,NULL);
+insert into allotment values (2,1,0,1,NULL);
+insert into allotment values (2,2,0,1,NULL);
+
+select * from allotment;
+
+
+
+create table hostels(
+  h_no int primary key,
+  name varchar(30),
+  supervisor varchar(30),
+  warden varchar(30),
+  contact varchar(10)
+  );
+  
+
+
+drop table hostels;
+
+select * from hostels;
+insert into hostels values(1,'JCB','XYZ','ABC','9999999999');
+insert into hostels values(2,'SR','WXY','DEf','9999999989');
+
+
+insert into has_contact_info values('9943510111',1);
+
+select * from person;
+select * from PA_1;
+select * from PA_2;
+select * from has_contact_info;
+
+select * from PA_1,PA_2
+where PA_1.ID=PA_2.ID;
+
+call isRoomEmpty(30);
+
+SHOW PROCEDURE STATUS;
+drop procedure isRoomEmpty;
+
+
+#stored procedures
+delimiter //
+
+create procedure isRoomEmpty(
+  IN age int
+  )
+  
+begin
+	if age>60 then
+    select h_no,flr_no,room_no from
+    allotment where flr_no=0 and isEmpty=1 limit 1;
+    end if;
+  	if 40<= age and age<=60 then
+    select h_no,flr_no,room_no from
+    allotment where flr_no=1 and isEmpty=1 limit 1;
+    end if;
+  	if age<40 then
+    select h_no,flr_no,room_no from
+    allotment where flr_no=2 and isEmpty=1 limit 1;
+  	end if;
+end  //
+
+delimiter;
+
+
+
+
+
+
+delimiter //
+
+create procedure clearRoom(
+  IN ID int
+  )
+  
+begin
+	update allotment set isEmpty=1, ID=NULL
+    where allotment.ID = ID;
+end  //
+
+delimiter;
+
+
+
+
+delimiter //
+
+create procedure insertPhNo(
+  IN PhNo varchar(10),
+  IN ID int
+  )
+  
+begin
+	insert into has_contact_info values(PhNo,ID);
+end  //
+
+delimiter;
+
+
+
+delimiter $$
+
+create trigger allot_by_insert
+after insert on person
+for each row
+begin
+	if new.age>60 then
+    	update allotment set allotment.isEmpty=0,allotment.ID = new.ID
+        where allotment.isEmpty=1 and allotment.flr_no=0 limit 1;
+    end if;
+    if 40<=new.age and new.age<=60 then
+    	update allotment set allotment.isEmpty=0,allotment.ID = new.ID
+        where allotment.isEmpty=1 and allotment.flr_no=1 limit 1;
+    end if;
+    if new.age<40 then
+    	update allotment set allotment.isEmpty=0,allotment.ID = new.ID
+        where allotment.isEmpty=1 and allotment.flr_no=2 limit 1;
+    end if;
+end $$
+
+delimiter;
+
+select * from allotment;
+
+select * from person;
+
+call isRoomEmpty(50);
+
+insert into person values(3,'ABCG1','Rahul','Kumar','Gupta','DEL','DIB',35,'2020-06-06');
+
+insert into person values(2,'ABC1','Arvinder',NULL,'Singh','DEL','DIB',30,'2020-06-06');
+
+delete from person where ID=3;
+
+
+call clearRoom(3);
+
+
+call isRoomEmpty(30);
+
+
+
+
+
+
+call insertPhNo('8011634300',2);
+
+select * from has_contact_info;
+
