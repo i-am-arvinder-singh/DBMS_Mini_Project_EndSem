@@ -1,35 +1,19 @@
 create table person(
   ID int primary key,
-  flight_No varchar(20),
   f_name varchar(20),
   m_name varchar(20),
   l_name varchar(20),
-  travelled_from varchar(20),
-  travelling_to varchar(20),
-  age int,
-  arrival_date date
+  PIN varchar(10),
+  address_line varchar(50)
   );
 
-
 drop table person;
-drop table PA,pin_state,has_contact_info,allotment;
 drop table arrival_departure;
 
 create table arrival_departure(
   arrival_date date primary key,
   departure_date date
   );
-
-create table PA(
-  ID int primary key,
-  Locality varchar(50),
-  PIN varchar(10),
-  address_Line varchar(50),
-  foreign key(ID)
-  references person(ID)
-  on delete cascade
-  );
-
 
 create table pin_state(
   PIN varchar(10) primary key,
@@ -44,20 +28,35 @@ create table has_contact_info(
   references person(ID)
   on delete cascade
   );
-  
+
+drop table allotment;
+
+create table arrival(
+  arrival_id int primary key,
+  travelling_from varchar(20),
+  travelling_to varchar(20),
+  arrival_date date,
+  age int,
+  ID int,
+  foreign key(ID)
+  references person(ID)
+  on delete cascade
+  );
+select * from arrival;
+select * from person;
+select * from allotment;
+call clearRoom(1);
+insert into arrival values(1,'DEL','DIB','2020-06-06',30,1);
+insert into arrival values(2,'DEL','DIB','2020-06-14',35,2);
+
+
 create table allotment(
 	h_no int,
   	flr_no int,
   	room_no int,
   	isEmpty int,
   	ID int,
-    foreign key(ID)
-    references person(ID)
-    on delete no action,
-  	primary key(h_no,room_no,flr_no),
-  	foreign key(h_no)
-    references hostels(h_no)
-    on delete no action
+  	primary key(h_no,room_no,flr_no)
   );
 
 drop table allotment;
@@ -66,37 +65,33 @@ insert into allotment values (1,0,0,1,NULL);
 insert into allotment values (1,0,1,1,NULL);
 insert into allotment values (1,1,0,1,NULL);
 insert into allotment values (1,2,0,1,NULL);
-insert into allotment values (2,0,0,1,NULL);
 insert into allotment values (2,0,1,1,NULL);
+insert into allotment values (2,0,0,1,NULL);
 insert into allotment values (2,1,0,1,NULL);
 insert into allotment values (2,2,0,1,NULL);
 
 select * from allotment;
+drop table person;
 
 
 
 create table hostels(
   h_no int primary key,
-  name varchar(30),
-  supervisor varchar(30),
-  warden varchar(30),
-  contact varchar(10)
+  h_name varchar(30),
+  h_warden varchar(30),
+  h_contact varchar(10)
   );
   
-
+call isRoomEmpty(50);
 
 drop table hostels;
 
 select * from hostels;
-insert into hostels values(1,'JCB','XYZ','ABC','9999999999');
-insert into hostels values(2,'SR','WXY','DEf','9999999989');
-
-
-insert into has_contact_info values('9943510111',1);
+insert into hostels values(1,'JCB','XYZ','9999999999');
+insert into hostels values(2,'SR','WXY','9999999989');
+insert into has_contact_info values(9943510111,1);
 
 select * from person;
-select * from PA_1;
-select * from PA_2;
 select * from has_contact_info;
 
 select * from PA_1,PA_2
@@ -137,6 +132,10 @@ delimiter;
 
 
 
+
+
+
+
 delimiter //
 
 create procedure clearRoom(
@@ -146,6 +145,22 @@ create procedure clearRoom(
 begin
 	update allotment set isEmpty=1, ID=NULL
     where allotment.ID = ID;
+end  //
+
+delimiter;
+
+
+
+
+delimiter //
+
+create procedure insertPinState(
+  IN PIN varchar(10),
+  IN state varchar(30)
+  )
+  
+begin
+	insert into pin_state values(PIN,state);
 end  //
 
 delimiter;
@@ -171,7 +186,7 @@ delimiter;
 delimiter $$
 
 create trigger allot_by_insert
-after insert on person
+after insert on arrival
 for each row
 begin
 	if new.age>60 then
@@ -194,26 +209,20 @@ select * from allotment;
 
 select * from person;
 
-call isRoomEmpty(50);
-
-insert into person values(3,'ABCG1','Rahul','Kumar','Gupta','DEL','DIB',35,'2020-06-06');
-
-insert into person values(2,'ABC1','Arvinder',NULL,'Singh','DEL','DIB',30,'2020-06-06');
-
-delete from person where ID=3;
-
-
-call clearRoom(3);
-
-
 call isRoomEmpty(30);
 
+insert into person values(1,'Arvinder',NULL,'Singh','786001','Dibrugarh');
+insert into person values(2,'Rahul','Kumar','Gupta','786001','Dibrugarh');
 
+insert into arrival values(
 
+insert into person values(3,'ABC1','Arvinder',NULL,'Singh','DEL','DIB',30,'No','2020-06-06');
+insert into person values(2,'ABC1','Arvinder',NULL,'Singh','DEL','DIB',30,'No','2020-06-06');
 
+delete from person where ID=1 or ID=2 or ID=3;
+call clearRoom(3);
+call isRoomEmpty(30);
+call insertPhNo('8011634300',1);
+call insertPinState('786001','Assam');
 
-
-call insertPhNo('8011634300',2);
-
-select * from has_contact_info;
-
+select * from pin_state;
